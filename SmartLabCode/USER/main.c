@@ -26,66 +26,66 @@
 #include <string.h>
 
 /*
- *ºê¶¨Òå
+ *å®å®šä¹‰
  */
-#define APP_TASK 1 //¸ÃºêÎª1Ê±²Å»áÖ´ĞĞAPPÈÎÎñ
-#define ALIYUN_TASK 1//°¢ÀïÔÆÈÎÎñ
+#define APP_TASK 1 //è¯¥å®ä¸º1æ—¶æ‰ä¼šæ‰§è¡ŒAPPä»»åŠ¡
+#define ALIYUN_TASK 0//é˜¿é‡Œäº‘ä»»åŠ¡
 /**
 * RFID
-*   Á¬ÏßËµÃ÷£º
+*   è¿çº¿è¯´æ˜ï¼š
 *   1--SDA  <----->PA6
 *   2--SCK  <----->PA5
 *   3--MOSI <----->PA7
 *   4--MISO <----->PA4
-*   5--Ğü¿Õ
+*   5--æ‚¬ç©º
 *   6--GND <----->GND
 *   7--RST <----->PB0
 *   8--VCC <----->VCC
 **/
-/**************syn6288Ğ¾Æ¬ÉèÖÃÃüÁî*********************/
-unsigned char SYN_StopCom[] = {0xFD, 0X00, 0X02, 0X02, 0XFD}; //Í£Ö¹ºÏ³É
-unsigned char SYN_SuspendCom[] = {0XFD, 0X00, 0X02, 0X03, 0XFC}; //ÔİÍ£ºÏ³É
-unsigned char SYN_RecoverCom[] = {0XFD, 0X00, 0X02, 0X04, 0XFB}; //»Ö¸´ºÏ³É
-unsigned char SYN_ChackCom[] = {0XFD, 0X00, 0X02, 0X21, 0XDE}; //×´Ì¬²éÑ¯
-unsigned char SYN_PowerDownCom[] = {0XFD, 0X00, 0X02, 0X88, 0X77}; //½øÈëPOWER DOWN ×´Ì¬ÃüÁî
+/**************syn6288èŠ¯ç‰‡è®¾ç½®å‘½ä»¤*********************/
+unsigned char SYN_StopCom[] = {0xFD, 0X00, 0X02, 0X02, 0XFD}; //åœæ­¢åˆæˆ
+unsigned char SYN_SuspendCom[] = {0XFD, 0X00, 0X02, 0X03, 0XFC}; //æš‚åœåˆæˆ
+unsigned char SYN_RecoverCom[] = {0XFD, 0X00, 0X02, 0X04, 0XFB}; //æ¢å¤åˆæˆ
+unsigned char SYN_ChackCom[] = {0XFD, 0X00, 0X02, 0X21, 0XDE}; //çŠ¶æ€æŸ¥è¯¢
+unsigned char SYN_PowerDownCom[] = {0XFD, 0X00, 0X02, 0X88, 0X77}; //è¿›å…¥POWER DOWN çŠ¶æ€å‘½ä»¤
 
-/*****************Êı¾İ¼ÇÂ¼*****************/
-char cp_time[11+4] ;//0×Ö½Ú³õÊ¼»¯Îª'R',Êı¾İ×ÖÍ·£¬±ãÓÚÊ¶±ğ£»8Î»Ê±¼äÎÄ±¾£»1Î»RFIDÊ¶±ğµ½µÄID×éºÅ£»4Î»ºìÍâÎÂ¶ÈÊı¾İ£»
-u8 USART3_RX_BUF[4];//À¶ÑÀÊı¾İ½ÓÊÕÊı×é
-u8 USART3_TX_BUF[40];//À¶ÑÀÊı¾İ·¢ËÍÊı×é
-u8 num_device[3];//·¢ËÍÊı×éÊ¹ÓÃÉè±¸µÄid,×ÖÍ·'D'
+/*****************æ•°æ®è®°å½•*****************/
+char cp_time[11+4] ;//0å­—èŠ‚åˆå§‹åŒ–ä¸º'R',æ•°æ®å­—å¤´ï¼Œä¾¿äºè¯†åˆ«ï¼›8ä½æ—¶é—´æ–‡æœ¬ï¼›1ä½RFIDè¯†åˆ«åˆ°çš„IDç»„å·ï¼›4ä½çº¢å¤–æ¸©åº¦æ•°æ®ï¼›
+u8 USART3_RX_BUF[4];//è“ç‰™æ•°æ®æ¥æ”¶æ•°ç»„
+u8 USART3_TX_BUF[40];//è“ç‰™æ•°æ®å‘é€æ•°ç»„
+u8 num_device[3];//å‘é€æ•°ç»„ä½¿ç”¨è®¾å¤‡çš„id,å­—å¤´'D'
 float temp_mlx;
-u8 temp,humi,ppm;//ÎÂ¶È£¬Êª¶È£¬ÑÌÎíÅ¨¶È°Ù·Ö±È
-u8 Rxnum;//½ÓÊÕÊı×éĞòºÅ£¬´Ó0¿ªÊ¼
-u8 card_num = 0;//±êÇ©idĞòºÅ
-u8 card_num_device = 0;//¼ÇÂ¼Ê¹ÓÃÉè±¸µÄid
-u8 face_num = 0;//ÈËÁ³idĞòºÅ
-u8 tempH,tempL,rhH,rhL,ppm_pre;//¸÷Ä£¿éãĞÖµ
+u8 temp,humi,ppm;//æ¸©åº¦ï¼Œæ¹¿åº¦ï¼ŒçƒŸé›¾æµ“åº¦ç™¾åˆ†æ¯”
+u8 Rxnum;//æ¥æ”¶æ•°ç»„åºå·ï¼Œä»0å¼€å§‹
+u8 card_num = 0;//æ ‡ç­¾idåºå·
+u8 card_num_device = 0;//è®°å½•ä½¿ç”¨è®¾å¤‡çš„id
+u8 face_num = 0;//äººè„¸idåºå·
+u8 tempH,tempL,rhH,rhL,ppm_pre;//å„æ¨¡å—é˜ˆå€¼
 
-u8 led_temp_status,led2_status,led_humi_status,led4_status,led_ppm_status;//±¨¾¯Ö¸Ê¾£¬Öµ1±¨¾¯
-u8 alarm_num;//Ö¸Ê¾ÄÄ¸ö½Úµã±¨¾¯
-u8 set_flag = 1;//±¨¾¯±êÖ¾Î»
-u8 r_flag;//1 ½øÈëRFID¶Á¿¨£¬0ÍË³ö
-u8 y_flag;//1 ½øÈëÒßÇé·À¿ØÈÎÎñ£¬0ÍË³ö
-u8 f_flag;//1 ½øÈëÈËÁ³Ê¶±ğÈÎÎñ£¬0ÍË³ö
-u8 n_flag;//1 ½øÈëRFID¿¨Ìí¼ÓÈÎÎñ£¬0ÍË³ö
-u8 d_flag;//1 ½øÈëRFID¿¨Éè±¸¹ÜÀíÈÎÎñ£¬0ÍË³ö
+u8 led_temp_status,led2_status,led_humi_status,led4_status,led_ppm_status;//æŠ¥è­¦æŒ‡ç¤ºï¼Œå€¼1æŠ¥è­¦
+u8 alarm_num;//æŒ‡ç¤ºå“ªä¸ªèŠ‚ç‚¹æŠ¥è­¦
+u8 set_flag = 1;//æŠ¥è­¦æ ‡å¿—ä½
+u8 r_flag;//1 è¿›å…¥RFIDè¯»å¡ï¼Œ0é€€å‡º
+u8 y_flag;//1 è¿›å…¥ç–«æƒ…é˜²æ§ä»»åŠ¡ï¼Œ0é€€å‡º
+u8 f_flag;//1 è¿›å…¥äººè„¸è¯†åˆ«ä»»åŠ¡ï¼Œ0é€€å‡º
+u8 n_flag;//1 è¿›å…¥RFIDå¡æ·»åŠ ä»»åŠ¡ï¼Œ0é€€å‡º
+u8 d_flag;//1 è¿›å…¥RFIDå¡è®¾å¤‡ç®¡ç†ä»»åŠ¡ï¼Œ0é€€å‡º
 
-//¶¨Òå½ÓÊÕÉãÏñÍ·Ê¶±ğµÄÊı×é
-u8 mask[4],name[20];//¿ÚÕÖÊ¶±ğ£¬ÈËÁ³Ê¶±ğ
+//å®šä¹‰æ¥æ”¶æ‘„åƒå¤´è¯†åˆ«çš„æ•°ç»„
+u8 mask[4],name[20];//å£ç½©è¯†åˆ«ï¼Œäººè„¸è¯†åˆ«
 
-unsigned int TEHUTimer=0;     //ÓÃÓÚÎÂÊª¶È²É¼¯µÄ¼ÆÊ±µÄ±äÁ¿   µ¥Î»Ãë
-unsigned int SystemTimer=0;   //±äÁ¿ÉùÃ÷È«¾ÖÊ±¼ä±äÁ¿
+unsigned int TEHUTimer=0;     //ç”¨äºæ¸©æ¹¿åº¦é‡‡é›†çš„è®¡æ—¶çš„å˜é‡   å•ä½ç§’
+unsigned int SystemTimer=0;   //å˜é‡å£°æ˜å…¨å±€æ—¶é—´å˜é‡
 
-//×Ô¶¨Òåº¯Êı
-void data_send(u8 *Tx_Buf);//ÎÂÊª¶ÈµÈÊı¾İÀ¶ÑÀ·¢ËÍ
-void alarm(void);//ÓÃÓÚ±¨¾¯
-u8 face(const u8 *name);//ÈËÁ³Ê¶±ğ
-void new_card(u8* C_oled_use_array);//¿¨Ìí¼Ó
+//è‡ªå®šä¹‰å‡½æ•°
+void data_send(u8 *Tx_Buf);//æ¸©æ¹¿åº¦ç­‰æ•°æ®è“ç‰™å‘é€
+void alarm(void);//ç”¨äºæŠ¥è­¦
+u8 face(const u8 *name);//äººè„¸è¯†åˆ«
+void new_card(u8* C_oled_use_array);//å¡æ·»åŠ 
 void aliyun(void);
 
 
-//×Ô¶¨Òå»ñÈ¡ÎŞ·ûºÅ×Ö·û³¤¶Èº¯Êı
+//è‡ªå®šä¹‰è·å–æ— ç¬¦å·å­—ç¬¦é•¿åº¦å‡½æ•°
 size_t ac_strlen(unsigned char* p)
 {
 	int count = 0;
@@ -102,313 +102,318 @@ int main(void)
 {
 	char* real_time;
 	
-	u8 key_board=0;//°å×Ó°´¼ü
+	u8 key_board=0;//æ¿å­æŒ‰é”®
 	u8 TandH[10];
 	u8 *p=TandH;
 	
-	cp_time[0] = 'R';//³õÊ¼»¯ĞÅÏ¢×ÖÍ·
-	u8 C_oled_use_array[11] = {'0','0','0','0','0','0','0','0','0','0','\0'};//oledÏÔÊ¾ÓÃµÄÊı×é
+	cp_time[0] = 'R';//åˆå§‹åŒ–ä¿¡æ¯å­—å¤´
+	u8 C_oled_use_array[11] = {'0','0','0','0','0','0','0','0','0','0','\0'};//oledæ˜¾ç¤ºç”¨çš„æ•°ç»„
 	
-	tempH=35;	//ÎÂ¶ÈãĞÖµ
+	tempH=40;	//æ¸©åº¦é˜ˆå€¼
 	tempL=10;
-	rhH=85;		//Êª¶ÈãĞÖµ
-	rhL=22;
-	ppm_pre=50;//ÑÌÎíÅ¨¶ÈãĞÖµ
-	mask[1] = '#';//³õÊ¼»¯¿ÚÕÖÊ¶±ğ£¬·À½øÈë
+	rhH=70;		//æ¹¿åº¦é˜ˆå€¼
+	rhL=30;
+	ppm_pre=50;//çƒŸé›¾æµ“åº¦é˜ˆå€¼
+	mask[1] = '#';//åˆå§‹åŒ–å£ç½©è¯†åˆ«ï¼Œé˜²è¿›å…¥
 	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//ÉèÖÃÖĞ¶ÏÓÅÏÈ¼¶·Ö×éÎª×é2£º2Î»ÇÀÕ¼ÓÅÏÈ¼¶£¬2Î»ÏìÓ¦ÓÅÏÈ¼¶
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//è®¾ç½®ä¸­æ–­ä¼˜å…ˆçº§åˆ†ç»„ä¸ºç»„2ï¼š2ä½æŠ¢å ä¼˜å…ˆçº§ï¼Œ2ä½å“åº”ä¼˜å…ˆçº§
 	
-	//IWDG_Init(5,1*625);               //¶ÀÁ¢¿´ÃÅ¹· Ê±¼ä1*2s
-	delay_init();	    	 //ÑÓÊ±º¯Êı³õÊ¼»¯
+	//IWDG_Init(5,1*625);               //ç‹¬ç«‹çœ‹é—¨ç‹— æ—¶é—´1*2s
+	delay_init();	    	 //å»¶æ—¶å‡½æ•°åˆå§‹åŒ–
 
 	LED_Init();
 	KEY_Init();
-	RC522_Init();       //³õÊ¼»¯ÉäÆµ¿¨Ä£¿é
-	OLED_Init();			//³õÊ¼»¯OLED  
+	RC522_Init();       //åˆå§‹åŒ–å°„é¢‘å¡æ¨¡å—
+	OLED_Init();			//åˆå§‹åŒ–OLED  
 	OLED_Clear(); 
 
-  MQ2_Init();
-	SMBus_Init();//ºìÍâ²âÎÂÄ£¿émlx90614
+	MQ2_Init();
+	SMBus_Init();//çº¢å¤–æµ‹æ¸©æ¨¡å—mlx90614
 
-  //ÖĞ¶Ï½ÓÊÕË³Ğò
+  //ä¸­æ–­æ¥æ”¶é¡ºåº
 	Usart2_Init(115200);	 	//esp8266
-	USART3_Init(9600);	 	//À¶ÑÀ
+	USART3_Init(9600);	 	//è“ç‰™
 	USART4_Init(9600);		//K210
-	Usart1_Init(9600);  //WiFiµ÷ÊÔ
+	Usart1_Init(9600);  //WiFiè°ƒè¯•
 
-	WiFi_ResetIO_Init();            //³õÊ¼»¯WiFiµÄ¸´Î»IO
-	AliIoT_Parameter_Init();	    //³õÊ¼»¯Á¬½Ó°¢ÀïÔÆIoTÆ½Ì¨MQTT·şÎñÆ÷µÄ²ÎÊı
-	//u1_printf("µ÷ÊÔ");
+	WiFi_ResetIO_Init();            //åˆå§‹åŒ–WiFiçš„å¤ä½IO
+	AliIoT_Parameter_Init();	    //åˆå§‹åŒ–è¿æ¥é˜¿é‡Œäº‘IoTå¹³å°MQTTæœåŠ¡å™¨çš„å‚æ•°
+	//u1_printf("è°ƒè¯•");
 	DHT11_Init();
 	
 	delay_ms(500);
-	// UIDÎªÄãÒªĞŞ¸ÄµÄ¿¨µÄUID key_type£º0ÎªKEYA£¬·Ç0ÎªKEYB KEYÎªÃÜÔ¿ RW:1ÊÇ¶Á£¬0ÊÇĞ´ data_addrÎªĞŞ¸ÄµÄµØÖ· dataÎªÊı¾İÄÚÈİ
-	//IC_RW ( UID, 0, KEY_A, 1, 0x10, data );
 	
     while(1)
     {
 
 //MEAU:	
-			DHT11_Read_Data(&temp,&humi);//»ñÈ¡ÎÂÊª¶È
-			ppm = MQ2_GetPPM()/2;//Å¨¶È°Ù·Ö±ÈÁ¿»¯
+		DHT11_Read_Data(&temp,&humi);//è·å–æ¸©æ¹¿åº¦
+		ppm = MQ2_GetPPM()/2;//æµ“åº¦ç™¾åˆ†æ¯”é‡åŒ–
 
-			#if APP_TASK //APP¼°¸÷Ä£¿éÈÎÎñ
+		#if APP_TASK //APPåŠå„æ¨¡å—ä»»åŠ¡
 			
-			if(set_flag == 1) 
-			{	
-			    alarm();//¾¯±¨
-					data_send(USART3_TX_BUF);//ÎÂÊª¶ÈµÈÊı¾İ·¢ËÍ
-				  //delay_ms(200);
-			}
+		if(set_flag == 1) 
+		{	
+			alarm();//è­¦æŠ¥
+			data_send(USART3_TX_BUF);//æ¸©æ¹¿åº¦ç­‰æ•°æ®å‘é€
+			//delay_ms(200);
+		}
 			
-			if(d_flag == 1)//½øÈëÉè±¸¹ÜÀíÈÎÎñ£¬µ¥Ïß³Ì
+		if(d_flag == 1)//è¿›å…¥è®¾å¤‡ç®¡ç†ä»»åŠ¡ï¼Œå•çº¿ç¨‹
+		{
+			d_flag = 1;
+			num_device[0] = 'D';	
+			while(1)//RFIDè¯†åˆ«
 			{
-				  d_flag = 1;
-					num_device[0] = 'D';	
-			    while(1)//RFIDÊ¶±ğ
-					{
-							OLED_Clear();
-							OLED_ShowString(0,0,"Device Manage");
-              card_num_device = card_unlock();//RFID ·µ»Ø»ñÈ¡µ½µÄµÚ¼¸ÕÅ¿¨
-						  num_device[1] = card_num_device%10 + '0';
-						  switch(card_num_device)
-							{
-								case 0:
-								OLED_Clear();
-								OLED_ShowString(0,2,"no card");
-								OLED_ShowString(0,4,"Please Swipe Again");
-								delay_ms(1000);
-								OLED_Clear();
-								OLED_ShowString(0,0,"Device Manage");
-								break;
-								
-								case 255:
-								break;	
-
-                default:
-								UART3_SendString(num_device,ac_strlen(num_device));	
-								OLED_Clear();
-								OLED_ShowString(0,2,"welcome");
-								OLED_ShowChar(64,2,num_device[1]);
-								delay_ms(1000);		
-                break;								
-							}
-							if(d_flag == 0)//ÍË³öÉè±¸¹ÜÀí
-							{					
-									d_flag = 0;//ÍË³öºóÇå0£¬·ÀÖ¹ÔÙ´Î½øÈë
-									OLED_Clear();
-									break;
-							}						
-					} 
-			}
-			
-			//OLED_Clear();  //ÇåÆÁ
-			OLED_ShowString(0,0,"A.Card unlock");		//²Ëµ¥ABC£¬¼üÈëA£ºÓÃ¿¨½âËø£¬¼üÈëB£ºÂ¼Èë¿¨£¬¼üÈëC£ºÃÜÂë½âËø£¬¼üÈëD£ºĞŞ¸ÄÃÜÂë
-			OLED_ShowString(0,4,"B.New Card");
-			key_board = KEY_Scan(0);
-			if(key_board!=WKUP_PRES){//·ÇÍË³ö£¬½øÈëÈÎÎñ£¬°üº¬RFID£¬¿ÚÕÖ£¬ÈËÁ³
-					if(key_board==KEY0_PRES || r_flag==1)//¼üÈëA£ºÓÃ¿¨½âËø
-					{
-//unlock:						
-						  r_flag = 1;
-							LED0 = !LED0;//µ÷ÊÔ°å°´¼ü0
-							while(1)//RFIDÊ¶±ğ
-							{
-									OLED_Clear();
-									OLED_ShowString(0,0,"A.Card unlock");
-								  if(y_flag == 1) {
-									    //ÒßÇé·À¿ØÈÎÎñ
-									    temp_mlx = SMBus_ReadTemp();  //»ñÈ¡ÌåÎÂ
-										  sprintf(cp_time+10,"%.1f",temp_mlx);
-											OLED_Clear();
-											OLED_ShowString(0,0,"epi pre");
-											OLED_ShowString(0,6,"mlx=");
-											OLED_ShowString(32,6,(u8*)(cp_time+10));
-											OLED_ShowString(64,6,"C");
-										
-									    if(mask[1] == '1' && temp_mlx < 37.5) {
-											    //»¶Ó­
-												  OLED_ShowString(0,2,"welcome");
-											    SYN_FrameInfo(0, "[v16][m5][t6]»¶Ó­£¡");
-												  mask[1] = '#';//Çå±êÖ¾
-											}else if(mask[1] == '0' && temp_mlx < 37.5) {
-											    //Çë´÷ºÃ¿ÚÕÖ
-												  OLED_ShowString(0,2,"no mask");
-											    SYN_FrameInfo(0, "[v16][m5][t6]Çë´÷ºÃ¿ÚÕÖ£¡");
-											    mask[1] = '#';//Çå±êÖ¾
-											}else if(mask[1] != '#' && temp_mlx >= 37.5){
-											    //ÎÂ¶È¹ı¸ß
-												  OLED_ShowString(0,2,"high temp");
-											    SYN_FrameInfo(0, "[v16][m5][t6]Çë×¢Òâ£¬ÄúÌåÎÂ¹ı¸ß£¡");
-												  mask[1] = '#';//Çå±êÖ¾
-											}
-											delay_ms(500);
-									}
-									//RFIDÈÎÎñ || ÈËÁ³Ê¶±ğ
-									if(f_flag == 1) { //ÈËÁ³Ê¶±ğ
-									    face_num = face(name);//»ñÈ¡ÈËÁ³Ê¶±ğID
-											cp_time[1] = face_num%10 + '0';											
-											temp_mlx = SMBus_ReadTemp();  //»ñÈ¡ÌåÎÂ
-											sprintf(cp_time+10,"%.1f",temp_mlx);
-										
-											OLED_Clear();
-											OLED_ShowString(0,0,"face recognition");
-										  OLED_ShowString(0,2,"ID:");
-										  OLED_ShowChar(24,2,face_num+'0');
-										
-											for(int i=0;i<3;i++)
-											{
-											    UART3_SendString((u8*)cp_time,14);//Í¨¹ı´®¿Ú·¢ËÍÊı¾İ
-											}
-											switch(face_num)
-											{
-													case 0:
-													break;
-													
-													case 1:
-													SYN_FrameInfo(0, "[v16][m5][t6]»¶Ó­ÅÓÏÈÉú¡£");
-													break;
-													
-													case 2:
-													SYN_FrameInfo(0, "[v16][m5][t6]»¶Ó­¡£");
-													break;														
-													
-													default:
-													break;
-											}
-									    name[1] = '0';//Çå³ıÊ¶±ğ½á¹û
-											delay_ms(500);
-									}
-
-									card_num = card_unlock();//RFID ·µ»Ø»ñÈ¡µ½µÄµÚ¼¸ÕÅ¿¨
-									switch(card_num)
-									{
-											case 0:
-											OLED_Clear();
-											OLED_ShowString(0,2,"no card");
-											OLED_ShowString(0,4,"Please Swipe Again");
-											delay_ms(1864);
-											OLED_Clear();
-											OLED_ShowString(0,0,"A.Card unlock");
-											break;
-
-											case 255:
-											break;
-							
-											default://Ê¶±ğÎª¿âÖĞµÄ¿¨
-											real_time = __TIME__;//»ñÈ¡Ê±¼ä
-											cp_time[1] = card_num%10 + '0';											
-											strcat(cp_time+2,real_time);
-											temp_mlx = SMBus_ReadTemp();  //»ñÈ¡ÌåÎÂ
-											sprintf(cp_time+10,"%.1f",temp_mlx);
-											for(int i=0;i<3;i++)
-											{
-											    UART3_SendString((u8*)cp_time,14);//Í¨¹ı´®¿Ú·¢ËÍÊı¾İ
-											}
-											OLED_Clear();
-											OLED_ShowString(0,2,"welcome,card");
-											OLED_ShowChar(96,2,card_num+'0');
-											OLED_ShowString(0,4,"Door is open");
-											delay_ms(1864);								
-//dht11_mq2:						
-											OLED_Clear();
-											OLED_ShowString(0,0,"Welcome");
-											OLED_ShowString(0,2,"Data show");
-
-											OLED_ShowString(0,4,"T=");
-											OLED_ShowString(48,4,"H=");
-											//DHT11_Read_Data(&temp,&humi);
-											TandH[0] = temp/10+'0';
-											TandH[1] = temp%10+'0';
-											TandH[2] = '%';
-											TandH[3] = '\0';
-											TandH[4] = humi/10+'0';
-											TandH[5] = humi%10+'0';
-											TandH[6] = '%';
-											TandH[7] = '\0';
-											p = TandH;
-											OLED_ShowString(16,4,p);
-											p = TandH+4;
-											OLED_ShowString(64,4,p);
-//											//ÑÌÎíÅ¨¶ÈÉèÖÃ
-//											ppm = MQ2_GetPPM()/2;//Å¨¶È°Ù·Ö±ÈÁ¿»¯
-//											OLED_ShowString(0,6,"ppm=");
-//											OLED_ShowNum(32,6,ppm,2,8);
-//											OLED_ShowString(56,6,"%");
-											//ºìÍâ²âÎÂÉèÖÃ
-											OLED_ShowString(0,6,"mlx=");
-											OLED_ShowString(32,6,(u8*)(cp_time+10));
-											OLED_ShowString(64,6,"C");
-											delay_ms(1864);
-											break;
-									};
-
-									if(n_flag == 1) //¿¨Ìí¼Ó
-									{
-									    new_card(C_oled_use_array);
-									}
-									delay_ms(20);
-							
-									if((key_board = KEY_Scan(0))==KEY0_PRES || r_flag == 0)//ÍË³öA
-									{
-//quit:								
-										  r_flag = 0;//ÍË³öºóÇå0
-										  OLED_Clear();
-											break;
-									}
-							}//while(1)RFIDÊ¶±ğ
-			}//if(KEY=='A'|| key_board==KEY0_PRES)//¼üÈëA£ºÓÃ¿¨½âËø
-
-	    if(key_board==KEY1_PRES)//¼üÈëB£ºÂ¼Èë¿¨
-			{
-					LED1 = !LED1;//µ÷ÊÔ°å°´¼ü1
+				OLED_Clear();
+				OLED_ShowString(0,0,"Device Manage");
+				card_num_device = card_unlock();//RFID è¿”å›è·å–åˆ°çš„ç¬¬å‡ å¼ å¡
+				num_device[1] = card_num_device%10 + '0';
+				switch(card_num_device)
+				{
+					case 0:
 					OLED_Clear();
-					OLED_ShowString(0,0,"B.New Card");
-					while(1)
-					{
-						switch(card_infor_entry(C_oled_use_array))
-						{
-								case 0:
-							  OLED_ShowString(0,2,"New Card:");
-								OLED_ShowString(0,4,C_oled_use_array);//ÏÔÊ¾¿¨ID
-								LED0 = 0;
-								delay_ms(1864);
-								delay_ms(1864);
-								LED0 = 1;
-								OLED_Clear();
-								OLED_ShowString(0,0,"B.New Card");
-								break;
-						
-								case 255:
-								//printf("case1\r\n");
-								break;
-						
-								default:
-								//printf("default\r\n");
-								OLED_ShowString(0,2,"error");
-								OLED_ShowString(0,4,"card is already exist");
-								LED1 = 0;
-								delay_ms(1864);
-								delay_ms(1864);
-								LED1 = 1;
-								OLED_Clear();
-								OLED_ShowString(0,0,"B.New Card");
-								break;
-						
-						};
-						delay_ms(20);
-					
-						if((key_board = KEY_Scan(0))==KEY1_PRES)//ÍË³öB
-						{
-								OLED_Clear();
-								break;
-						}
-						
-				}//while
-			}//if(key_board==KEY1_PRES)//¼üÈëB£ºÂ¼Èë¿¨
+					OLED_ShowString(0,2,"no card");
+					OLED_ShowString(0,4,"Please Swipe Again");
+					delay_ms(1000);
+					OLED_Clear();
+					OLED_ShowString(0,0,"Device Manage");
+					break;
+								
+					case 255:
+					break;	
+
+					default:
+					UART3_SendString(num_device,ac_strlen(num_device));	
+					OLED_Clear();
+					OLED_ShowString(0,2,"welcome");
+					OLED_ShowChar(64,2,num_device[1]);
+					delay_ms(1000);		
+					break;								
+				}
+				if(d_flag == 0)//é€€å‡ºè®¾å¤‡ç®¡ç†
+				{					
+					d_flag = 0;//é€€å‡ºåæ¸…0ï¼Œé˜²æ­¢å†æ¬¡è¿›å…¥
+					OLED_Clear();
+					break;
+				}						
+			} 
+		}
 			
-			delay_ms(100);
-//			goto MEAU;
+		//OLED_Clear();  //æ¸…å±
+		OLED_ShowString(0,0,"A.Card unlock");		//èœå•ABCï¼Œé”®å…¥Aï¼šç”¨å¡è§£é”ï¼Œé”®å…¥Bï¼šå½•å…¥å¡ï¼Œé”®å…¥Cï¼šå¯†ç è§£é”ï¼Œé”®å…¥Dï¼šä¿®æ”¹å¯†ç 
+		OLED_ShowString(0,4,"B.New Card");
+
+		key_board = KEY_Scan(0);
+		if(key_board!=WKUP_PRES){//éé€€å‡ºï¼Œè¿›å…¥ä»»åŠ¡ï¼ŒåŒ…å«RFIDï¼Œå£ç½©ï¼Œäººè„¸
+		if(key_board==KEY0_PRES || r_flag==1)//é”®å…¥Aï¼šç”¨å¡è§£é”
+		{
+//unlock:						
+			r_flag = 1;
+			LED0 = !LED0;//è°ƒè¯•æ¿æŒ‰é”®0
+			while(1)//RFIDè¯†åˆ«
+			{
+				OLED_Clear();
+				OLED_ShowString(0,0,"A.Card unlock");
+				if(y_flag == 1) 
+				{
+				//ç–«æƒ…é˜²æ§ä»»åŠ¡
+				temp_mlx = SMBus_ReadTemp();  //è·å–ä½“æ¸©
+				sprintf(cp_time+10,"%.1f",temp_mlx);
+				OLED_Clear();
+				OLED_ShowString(0,0,"epi pre");
+				OLED_ShowString(0,6,"mlx=");
+				OLED_ShowString(32,6,(u8*)(cp_time+10));
+				OLED_ShowString(64,6,"C");
+										
+				if(mask[1] == '1' && temp_mlx < 37.5) {
+				//æ¬¢è¿
+				OLED_ShowString(0,2,"welcome");
+				SYN_FrameInfo(0, "[v16][m5][t6]æ¬¢è¿ï¼");
+				mask[1] = '#';//æ¸…æ ‡å¿—
+				}
+				else if(mask[1] == '0' && temp_mlx < 37.5) 
+				{
+				//è¯·æˆ´å¥½å£ç½©
+				OLED_ShowString(0,2,"no mask");
+				SYN_FrameInfo(0, "[v16][m5][t6]è¯·æˆ´å¥½å£ç½©ï¼");
+				mask[1] = '#';//æ¸…æ ‡å¿—
+				}
+				else if(mask[1] != '#' && temp_mlx >= 37.5)
+				{
+				//æ¸©åº¦è¿‡é«˜
+				OLED_ShowString(0,2,"high temp");
+				SYN_FrameInfo(0, "[v16][m5][t6]è¯·æ³¨æ„ï¼Œæ‚¨ä½“æ¸©è¿‡é«˜ï¼");
+				mask[1] = '#';//æ¸…æ ‡å¿—
+				}
+				delay_ms(500);
+				}
+				//RFIDä»»åŠ¡ || äººè„¸è¯†åˆ«
+				if(f_flag == 1) 
+				{ //äººè„¸è¯†åˆ«
+					face_num = face(name);//è·å–äººè„¸è¯†åˆ«ID
+					cp_time[1] = face_num%10 + '0';											
+					temp_mlx = SMBus_ReadTemp();  //è·å–ä½“æ¸©
+					sprintf(cp_time+10,"%.1f",temp_mlx);
+										
+					OLED_Clear();
+					OLED_ShowString(0,0,"face recognition");
+					OLED_ShowString(0,2,"ID:");
+					OLED_ShowChar(24,2,face_num+'0');
+										
+					for(int i=0;i<3;i++)
+					{
+						UART3_SendString((u8*)cp_time,14);//é€šè¿‡ä¸²å£å‘é€æ•°æ®
+					}
+					switch(face_num)
+					{
+						case 0:
+						break;
+													
+						case 1:
+						SYN_FrameInfo(0, "[v16][m5][t6]æ¬¢è¿åºå…ˆç”Ÿã€‚");
+						break;
+													
+						case 2:
+						SYN_FrameInfo(0, "[v16][m5][t6]æ¬¢è¿ã€‚");
+						break;														
+													
+						default:
+						break;
+					}
+					name[1] = '0';//æ¸…é™¤è¯†åˆ«ç»“æœ
+					delay_ms(500);
+				}
+
+				card_num = card_unlock();//RFID è¿”å›è·å–åˆ°çš„ç¬¬å‡ å¼ å¡
+				switch(card_num)
+				{
+					case 0:
+					OLED_Clear();
+					OLED_ShowString(0,2,"no card");
+					OLED_ShowString(0,4,"Please Swipe Again");
+					delay_ms(1864);
+					OLED_Clear();
+					OLED_ShowString(0,0,"A.Card unlock");
+					break;
+
+					case 255:
+					break;
+							
+					default://è¯†åˆ«ä¸ºåº“ä¸­çš„å¡
+					real_time = __TIME__;//è·å–æ—¶é—´
+					cp_time[1] = card_num%10 + '0';											
+					strcat(cp_time+2,real_time);
+					temp_mlx = SMBus_ReadTemp();  //è·å–ä½“æ¸©
+					sprintf(cp_time+10,"%.1f",temp_mlx);
+					for(int i=0;i<3;i++)
+					{
+						UART3_SendString((u8*)cp_time,14);//é€šè¿‡ä¸²å£å‘é€æ•°æ®
+					}
+					OLED_Clear();
+					OLED_ShowString(0,2,"welcome,card");
+					OLED_ShowChar(96,2,card_num+'0');
+					OLED_ShowString(0,4,"Door is open");
+					delay_ms(1864);								
+//dht11_mq2:						
+					OLED_Clear();
+					OLED_ShowString(0,0,"Welcome");
+					OLED_ShowString(0,2,"Data show");
+
+					OLED_ShowString(0,4,"T=");
+					OLED_ShowString(48,4,"H=");
+					//DHT11_Read_Data(&temp,&humi);
+					TandH[0] = temp/10+'0';
+					TandH[1] = temp%10+'0';
+					TandH[2] = '%';
+					TandH[3] = '\0';
+					TandH[4] = humi/10+'0';
+					TandH[5] = humi%10+'0';
+					TandH[6] = '%';
+					TandH[7] = '\0';
+					p = TandH;
+					OLED_ShowString(16,4,p);
+					p = TandH+4;
+					OLED_ShowString(64,4,p);
+//					çƒŸé›¾æµ“åº¦è®¾ç½®
+//					ppm = MQ2_GetPPM()/2;//æµ“åº¦ç™¾åˆ†æ¯”é‡åŒ–
+//					OLED_ShowString(0,6,"ppm=");
+//					OLED_ShowNum(32,6,ppm,2,8);
+//					OLED_ShowString(56,6,"%");
+//					çº¢å¤–æµ‹æ¸©è®¾ç½®
+					OLED_ShowString(0,6,"mlx=");
+					OLED_ShowString(32,6,(u8*)(cp_time+10));
+					OLED_ShowString(64,6,"C");
+					delay_ms(1864);
+					break;
+				};
+
+				if(n_flag == 1) //å¡æ·»åŠ 
+				{
+					new_card(C_oled_use_array);
+				}
+				delay_ms(20);
+							
+				if((key_board = KEY_Scan(0))==KEY0_PRES || r_flag == 0)//é€€å‡ºA
+				{
+//quit:								
+					r_flag = 0;//é€€å‡ºåæ¸…0
+					OLED_Clear();
+				break;
+				}
+		}//while(1)RFIDè¯†åˆ«
+	}//if(KEY=='A'|| key_board==KEY0_PRES)//é”®å…¥Aï¼šç”¨å¡è§£é”
+
+	if(key_board==KEY1_PRES)//é”®å…¥Bï¼šå½•å…¥å¡
+	{
+		LED1 = !LED1;//è°ƒè¯•æ¿æŒ‰é”®1
+		OLED_Clear();
+		OLED_ShowString(0,0,"B.New Card");
+		while(1)
+		{
+			switch(card_infor_entry(C_oled_use_array))
+			{
+				case 0:
+				OLED_ShowString(0,2,"New Card:");
+				OLED_ShowString(0,4,C_oled_use_array);//æ˜¾ç¤ºå¡ID
+				LED0 = 0;
+				delay_ms(1864);
+				delay_ms(1864);
+				LED0 = 1;
+				OLED_Clear();
+				OLED_ShowString(0,0,"B.New Card");
+				break;
+						
+				case 255:
+				//printf("case1\r\n");
+				break;
+						
+				default:
+				//printf("default\r\n");
+				OLED_ShowString(0,2,"error");
+				OLED_ShowString(0,4,"card is already exist");
+				LED1 = 0;
+				delay_ms(1864);
+				delay_ms(1864);
+				LED1 = 1;
+				OLED_Clear();
+				OLED_ShowString(0,0,"B.New Card");
+				break;
+						
+			};
+			delay_ms(20);
+					
+			if((key_board = KEY_Scan(0))==KEY1_PRES)//é€€å‡ºB
+			{
+				OLED_Clear();
+				break;
+			}
+						
+		}//while
+	}//if(key_board==KEY1_PRES)//é”®å…¥Bï¼šå½•å…¥å¡
+			
+	delay_ms(100);
+//	goto MEAU;
 
     }//if(key_board!=WKUP_PRES)
 		#endif
@@ -419,350 +424,368 @@ int main(void)
 	}//while
 }//main
 
-/*****************************************¹¦ÄÜº¯ÊıÊµÏÖ***************************************************/
+/*****************************************åŠŸèƒ½å‡½æ•°å®ç°***************************************************/
 /*
- *Êı¾İ·¢ËÍ¸ñÊ½×ª»»
+ *æ•°æ®å‘é€æ ¼å¼è½¬æ¢
  */
 void data_send(u8 *Tx_Buf)
 {
-		u8 len;
-		Tx_Buf[0]='T';						//Ö¡Í·
-	  Tx_Buf[1]=temp/10%10+'0';		 	//½«ÎÂÊª¶ÈÊı¾İËÍÍù·¢ËÍÊı×é,ËÍ¸øÀ¶ÑÀÄ£¿éÈÃÊÖ»úAPPÏÔÊ¾
-	  Tx_Buf[2]=temp%10+0x30;		
-	  Tx_Buf[3]=humi/10%10+0x30;
-	  Tx_Buf[4]=humi%10+0x30;
+	u8 len;
+	Tx_Buf[0]='T';						//å¸§å¤´
+	Tx_Buf[1]=temp/10%10+'0';		 	//å°†æ¸©æ¹¿åº¦æ•°æ®é€å¾€å‘é€æ•°ç»„,é€ç»™è“ç‰™æ¨¡å—è®©æ‰‹æœºAPPæ˜¾ç¤º
+	Tx_Buf[2]=temp%10+0x30;		
+	Tx_Buf[3]=humi/10%10+0x30;
+	Tx_Buf[4]=humi%10+0x30;
 	
-	  Tx_Buf[5]=tempL/10%10+0x30;		 	//½«µÍÎÂ¶ÈãĞÖµËÍÍù·¢ËÍÊı×é,ËÍ¸øÀ¶ÑÀÄ£¿éÈÃÊÖ»úAPPÏÔÊ¾
-	 	Tx_Buf[6]=tempL%10+0x30;		
-	  Tx_Buf[7]=rhL/10%10+0x30;
-	 	Tx_Buf[8]=rhL%10+0x30;
+	Tx_Buf[5]=tempL/10%10+0x30;		 	//å°†ä½æ¸©åº¦é˜ˆå€¼é€å¾€å‘é€æ•°ç»„,é€ç»™è“ç‰™æ¨¡å—è®©æ‰‹æœºAPPæ˜¾ç¤º
+	Tx_Buf[6]=tempL%10+0x30;		
+	Tx_Buf[7]=rhL/10%10+0x30;
+	Tx_Buf[8]=rhL%10+0x30;
 	
-	  Tx_Buf[9]=led_temp_status+0x30;			//·¢ËÍµÍÎÂÔ¤¾¯×´Ì¬
-		Tx_Buf[10]=led2_status+0x30;		  //¸ßÎÂÔ¤¾¯
-		Tx_Buf[11]=led_humi_status+0x30;			//µÍÊª¶ÈÔ¤¾¯
-		Tx_Buf[12]=led4_status+0x30;			//¸ßÊª¶ÈÔ¤¾¯
+	Tx_Buf[9]=led_temp_status+0x30;			//å‘é€ä½æ¸©é¢„è­¦çŠ¶æ€
+	Tx_Buf[10]=led2_status+0x30;		  //é«˜æ¸©é¢„è­¦
+	Tx_Buf[11]=led_humi_status+0x30;			//ä½æ¹¿åº¦é¢„è­¦
+	Tx_Buf[12]=led4_status+0x30;			//é«˜æ¹¿åº¦é¢„è­¦
 
-		Tx_Buf[13]=tempH/10%10+0x30;		 	//½«¸ßãĞÖµÎÂ¶ÈÊı¾İËÍÍù·¢ËÍÊı×é,ËÍ¸øÀ¶ÑÀÄ£¿éÈÃÊÖ»úAPPÏÔÊ¾
-	 	Tx_Buf[14]=tempH%10+0x30;	
+	Tx_Buf[13]=tempH/10%10+0x30;		 	//å°†é«˜é˜ˆå€¼æ¸©åº¦æ•°æ®é€å¾€å‘é€æ•°ç»„,é€ç»™è“ç‰™æ¨¡å—è®©æ‰‹æœºAPPæ˜¾ç¤º
+	Tx_Buf[14]=tempH%10+0x30;	
 
-		Tx_Buf[15]=rhH/10%10+0x30;				//½«¸ßãĞÖµÊª¶ÈÊı¾İËÍÍù·¢ËÍÊı×é,ËÍ¸øÀ¶ÑÀÄ£¿éÈÃÊÖ»úAPPÏÔÊ¾
-	 	Tx_Buf[16]=rhH%10+0x30;
+	Tx_Buf[15]=rhH/10%10+0x30;				//å°†é«˜é˜ˆå€¼æ¹¿åº¦æ•°æ®é€å¾€å‘é€æ•°ç»„,é€ç»™è“ç‰™æ¨¡å—è®©æ‰‹æœºAPPæ˜¾ç¤º
+	Tx_Buf[16]=rhH%10+0x30;
 		
-		Tx_Buf[17]=ppm/10%10+0x30;				//µ±Ç°Å¨¶È
-	 	Tx_Buf[18]=ppm%10+0x30;
-		Tx_Buf[19]=ppm_pre/10+0x30;		//Å¨¶ÈãĞÖµ
-		Tx_Buf[20]=ppm_pre%10+0x30;
-		Tx_Buf[21]=led_ppm_status+0x30;   //Å¨¶È±¨¾¯Î»
+	Tx_Buf[17]=ppm/10%10+0x30;				//å½“å‰æµ“åº¦
+	Tx_Buf[18]=ppm%10+0x30;
+	Tx_Buf[19]=ppm_pre/10+0x30;		//æµ“åº¦é˜ˆå€¼
+	Tx_Buf[20]=ppm_pre%10+0x30;
+	Tx_Buf[21]=led_ppm_status+0x30;   //æµ“åº¦æŠ¥è­¦ä½
 
-		Tx_Buf[22]=card_num%10+0x30;
+	Tx_Buf[22]=card_num%10+0x30;
 		
 		
-		len = ac_strlen(Tx_Buf);
-		UART3_SendString(Tx_Buf,len);
-		delay_ms(500);
+	len = ac_strlen(Tx_Buf);
+	UART3_SendString(Tx_Buf,len);
+	delay_ms(500);
 }
 
-//±¨¾¯º¯Êı
+//æŠ¥è­¦å‡½æ•°
 void alarm(void)
 {
-		if(temp<=tempL) 
+	//ä½æ¸©åº¦é¢„è­¦
+	if(temp<=tempL) 
     {
-		    led_temp_status=1;
-		    alarm_num=1;
-		}				//µÍÎÂ¶ÈÔ¤¾¯
-		else if(temp>=tempH)
+		led_temp_status=1;
+		alarm_num=1;
+	}				
+	else if(temp>=tempH)
     {
-		    led_temp_status=2;
-		    alarm_num=2;
-		}
-		else 
-		{
-		    led_temp_status=0;
-			  alarm_num=0;
-		}
-		
-		if(humi<=rhL)	
+		led_temp_status=2;
+		alarm_num=2;
+	}
+	else 
+	{
+		led_temp_status=0;
+		alarm_num=0;
+	}
+	//ä½æ¹¿åº¦é¢„è­¦	
+	if(humi<=rhL)	
     {
-		    led_humi_status=1;
-		    alarm_num=3;
-		}			//µÍÊª¶ÈÔ¤¾¯
-		else if(humi>=rhH)
+		led_humi_status=1;
+		alarm_num=3;
+	}			
+	else if(humi>=rhH)
     {
-		    led_humi_status=2;
-		    alarm_num=4;
-		}
-		else 
+		led_humi_status=2;
+		alarm_num=4;
+	}
+	else 
     {
-		    led_humi_status=0;
-		    alarm_num=0;
-		}
-		
-		if(ppm>ppm_pre)	
+		led_humi_status=0;
+		alarm_num=0;
+	}
+	//æµ“åº¦é¢„è­¦	
+	if(ppm>ppm_pre)	
     {
-			  led_ppm_status=1;
-		    alarm_num=5;
-		}		//Å¨¶ÈÔ¤¾¯
-		else 
+		led_ppm_status=1;
+		alarm_num=5;
+	}		
+	else 
     {
-		    led_ppm_status=0;
-		    alarm_num=0;
-		}
+		led_ppm_status=0;
+		alarm_num=0;
+	}
 }
 /*
- *ÈËÁ³Ê¶±ğº¯Êı£¬·µ»ØÃû×ÖĞòºÅ
+ *äººè„¸è¯†åˆ«å‡½æ•°ï¼Œè¿”å›åå­—åºå·
  */
-u8 face(const u8 *name) {
-		if(name[0] == 'P') {
-				return name[1] - '0';
-		}else {
-				return 0;
-		}
+u8 face(const u8 *name) 
+{
+	if(name[0] == 'P') 
+	{
+		return name[1] - '0';
+	}
+	else 
+	{
+		return 0;
+	}
 }
 /*
- *Ìí¼ÓĞÂ¿¨
+ *æ·»åŠ æ–°å¡
  */
-void new_card(u8* C_oled_use_array) {
+void new_card(u8* C_oled_use_array) 
+{
 	while(1)
 	{
 		OLED_Clear();
 		OLED_ShowString(0,0,"New Card");
 		switch(card_infor_entry(C_oled_use_array))
 		{
-				case 0:
-				OLED_ShowString(0,2,"New Card:");
-				OLED_ShowString(0,4,C_oled_use_array);//ÏÔÊ¾¿¨ID
-				delay_ms(1000);
-				OLED_Clear();
-				OLED_ShowString(0,0,"New Card");
-				break;
+			case 0:
+			OLED_ShowString(0,2,"New Card:");
+			OLED_ShowString(0,4,C_oled_use_array);//æ˜¾ç¤ºå¡ID
+			delay_ms(1000);
+			OLED_Clear();
+			OLED_ShowString(0,0,"New Card");
+			break;
 						
-			  case 255:
-				break;
+			case 255:
+			break;
 						
-				default:
-				OLED_ShowString(0,2,"error");
-				OLED_ShowString(0,4,"card is already exist");
-				delay_ms(1000);
-				OLED_Clear();
-				OLED_ShowString(0,0,"New Card");
-				break;	
+			default:
+			OLED_ShowString(0,2,"error");
+			OLED_ShowString(0,4,"card is already exist");
+			delay_ms(1000);
+			OLED_Clear();
+			OLED_ShowString(0,0,"New Card");
+			break;	
 		};
 		delay_ms(20);
-		if(n_flag == 0)//ÍË³ö
+		if(n_flag == 0)//é€€å‡º
 		{
-				OLED_Clear();
-				break;
+			OLED_Clear();
+			break;
 		}
 		
 	}//while
 }
 /*
- *Á¬½Ó°¢ÀïÔÆ
+ *è¿æ¥é˜¿é‡Œäº‘
  */
 void aliyun(void)
 {		
-//	while(1)                       //Ö÷Ñ­»·
+//	while(1)                       //ä¸»å¾ªç¯
 //	{		
-		//WiFi_printf("µ÷ÊÔ");//u2_printf
+		//WiFi_printf("è°ƒè¯•");//u2_printf
 		/*--------------------------------------------------------------------*/
-		/*            Connect_flag=1Í¬·şÎñÆ÷½¨Á¢ÁËÁ¬½Ó                        */
+		/*            Connect_flag=1åŒæœåŠ¡å™¨å»ºç«‹äº†è¿æ¥                        */
 		/*--------------------------------------------------------------------*/
-			if(Connect_flag==1){     
-				connet_on();         //³ÌĞòÁ¬½Ó³É¹¦½ÓÊÕ´¦Àí³ÌĞò
-				Data_State();         //¸÷ÖÖÊı¾İµÄÈÎÎñ
-				delay_ms(1);          //ÑÓÊ±1ms£¬±ØĞëÓĞ£¬ÀïÃæÓĞÎ¹¹·£¬²»È»¿´ÃÅ¹·»áÒç³ö£¬Ôì³É¸´Î»				
-			}	
-		/*--------------------------------------------------------------------*/
-		/*                         ×¼±¸Á¬½Ó·şÎñÆ÷                             */
-		/*--------------------------------------------------------------------*/
-			else{ 
-				connet_first();
-			}
+	if(Connect_flag==1)
+	{     
+		connet_on();         //ç¨‹åºè¿æ¥æˆåŠŸæ¥æ”¶å¤„ç†ç¨‹åº
+		Data_State();         //å„ç§æ•°æ®çš„ä»»åŠ¡
+		delay_ms(1);          //å»¶æ—¶1msï¼Œå¿…é¡»æœ‰ï¼Œé‡Œé¢æœ‰å–‚ç‹—ï¼Œä¸ç„¶çœ‹é—¨ç‹—ä¼šæº¢å‡ºï¼Œé€ æˆå¤ä½				
+	}	
+	/*--------------------------------------------------------------------*/
+	/*                         å‡†å¤‡è¿æ¥æœåŠ¡å™¨                             */
+	/*--------------------------------------------------------------------*/
+	else
+	{ 
+		connet_first();
+	}
 
 //	}//while(1)
 }
 
-//´®¿Ú3ÖĞ¶Ï·şÎñ³ÌĞò,ÓÃ»§À¶ÑÀUSART3_TXD(PB.10)USART3_RXD(PB.11)
+//ä¸²å£3ä¸­æ–­æœåŠ¡ç¨‹åº,ç”¨æˆ·è“ç‰™USART3_TXD(PB.10)USART3_RXD(PB.11)
 void USART3_IRQHandler(void)                	
 {
 	u8 Res;
-	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)//½ÓÊÕ±êÖ¾Îª²»Îª0
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)//æ¥æ”¶æ ‡å¿—ä¸ºä¸ä¸º0
 	{
-	      Res =USART_ReceiveData(USART3);	//¶ÁÈ¡½ÓÊÕµ½µÄÊı¾İ
-		    USART3_RX_BUF[Rxnum] = Res;
-		    if(USART3_RX_BUF[Rxnum]==0x0A)//½ÓÊÕµ½'\n'
-						Rxnum=0;
-		    else
-						Rxnum++;
-		    USART_ClearFlag(USART3,USART_FLAG_RXNE);//½ÓÊÕ±êÖ¾Î»Çå0
-				if(USART3_RX_BUF[0]=='P')//½øÈëRFIDÈÎÎñ
-				    r_flag = 1;
-				if(USART3_RX_BUF[0]=='p')//ÍË³öRFIDÈÎÎñ
-				    r_flag = 0;
+	    Res =USART_ReceiveData(USART3);	//è¯»å–æ¥æ”¶åˆ°çš„æ•°æ®
+		USART3_RX_BUF[Rxnum] = Res;
+		if(USART3_RX_BUF[Rxnum]==0x0A)//æ¥æ”¶åˆ°'\n'
+			Rxnum=0;
+		else
+			Rxnum++;
+		USART_ClearFlag(USART3,USART_FLAG_RXNE);//æ¥æ”¶æ ‡å¿—ä½æ¸…0
+		if(USART3_RX_BUF[0]=='P')//è¿›å…¥RFIDä»»åŠ¡
+			r_flag = 1;
+		if(USART3_RX_BUF[0]=='p')//é€€å‡ºRFIDä»»åŠ¡
+			r_flag = 0;
 				
-				if(USART3_RX_BUF[0]=='Y')//½øÈëÒßÇé·À¿ØÈÎÎñ
-				    y_flag = 1;
-				if(USART3_RX_BUF[0]=='y')//ÍË³öÒßÇé·À¿ØÈÎÎñ
-				    y_flag = 0;
+		if(USART3_RX_BUF[0]=='Y')//è¿›å…¥ç–«æƒ…é˜²æ§ä»»åŠ¡
+			y_flag = 1;
+		if(USART3_RX_BUF[0]=='y')//é€€å‡ºç–«æƒ…é˜²æ§ä»»åŠ¡
+			y_flag = 0;
 				
-				if(USART3_RX_BUF[0]=='F')//½øÈëÈËÁ³Ê¶±ğÈÎÎñ
-				    f_flag = 1;
-				if(USART3_RX_BUF[0]=='f')//ÍË³öÈËÁ³Ê¶±ğÈÎÎñ
-				    f_flag = 0;
+		if(USART3_RX_BUF[0]=='F')//è¿›å…¥äººè„¸è¯†åˆ«ä»»åŠ¡
+			f_flag = 1;
+		if(USART3_RX_BUF[0]=='f')//é€€å‡ºäººè„¸è¯†åˆ«ä»»åŠ¡
+			f_flag = 0;
 				
-			  if(USART3_RX_BUF[0]=='N')//½øÈëRFID¿¨Ìí¼ÓÈÎÎñ
-				    n_flag = 1;
-				if(USART3_RX_BUF[0]=='n')//ÍË³öRFID¿¨Ìí¼ÓÈÎÎñ
-				    n_flag = 0;
-			  if(USART3_RX_BUF[0]=='D')//½øÈëRFID¿¨Ìí¼ÓÈÎÎñ
-				    d_flag = 1;
-				if(USART3_RX_BUF[0]=='d')//ÍË³öRFID¿¨Ìí¼ÓÈÎÎñ
-				    d_flag = 0;
+		if(USART3_RX_BUF[0]=='N')//è¿›å…¥RFIDå¡æ·»åŠ ä»»åŠ¡
+			n_flag = 1;
+		if(USART3_RX_BUF[0]=='n')//é€€å‡ºRFIDå¡æ·»åŠ ä»»åŠ¡
+			n_flag = 0;
+		if(USART3_RX_BUF[0]=='D')//è¿›å…¥RFIDå¡æ·»åŠ ä»»åŠ¡
+			d_flag = 1;
+		if(USART3_RX_BUF[0]=='d')//é€€å‡ºRFIDå¡æ·»åŠ ä»»åŠ¡
+			d_flag = 0;
 								
-		    if(USART3_RX_BUF[0]=='8')//½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄ×´Ì¬Çå³ıÉèÖÃÖ¸ÁîÍ·Êı¾İ
-		    { 
-				    if(USART3_RX_BUF[1]=='0')			  
-				    {
-					    set_flag=0;					//×´Ì¬Çå³ı
-				    }
-				    if(USART3_RX_BUF[1]=='1')			  
-			    	{
-					    set_flag=1;					//×´Ì¬¿ªÆô
-				    }
-				    USART3_RX_BUF[1]=0;				  //ÇåÁã
+		if(USART3_RX_BUF[0]=='8')//æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„çŠ¶æ€æ¸…é™¤è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®
+		{ 
+			if(USART3_RX_BUF[1]=='0')			  
+			{
+				set_flag=0;					//çŠ¶æ€æ¸…é™¤
+			}
+			if(USART3_RX_BUF[1]=='1')			  
+			{
+				set_flag=1;					//çŠ¶æ€å¼€å¯
+			}
+				USART3_RX_BUF[1]=0;				  //æ¸…é›¶
 		    }
-/********************************ÎÂÊª¶ÈãĞÖµÉèÖÃ*************************************/
-				if(USART3_RX_BUF[0]=='6')				   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄµÍÎÂ¶ÈÉèÖÃÖ¸ÁîÍ·Êı¾İ..............
+/********************************æ¸©æ¹¿åº¦é˜ˆå€¼è®¾ç½®*************************************/
+			if(USART3_RX_BUF[0]=='6')				   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„ä½æ¸©åº¦è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®..............
+			{
+				if(USART3_RX_BUF[1]=='0')			   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¸©åº¦è®¾ç½®å®šå€¼åŠ 1æŒ‡ä»¤
 				{
-					if(USART3_RX_BUF[1]=='0')			   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÎÂ¶ÈÉèÖÃ¶¨Öµ¼Ó1Ö¸Áî
-					{
-						tempL++;					   //ÎÂ¶È¶¨Öµ¼Ó1
-						if(tempL>99)
-						tempL=99;
-					}
-					if(USART3_RX_BUF[1]=='1')			   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÎÂ¶ÈÉèÖÃ¶¨Öµ¼õ1Ö¸Áî
-					{
-						tempL--;					   //ÎÂ¶È¶¨Öµ¼õ1
-						if(tempL<1)
-						tempL=1;
-					}
-					USART3_RX_BUF[1]=0;				   //ÇåÁã
+					tempL++;					   //æ¸©åº¦å®šå€¼åŠ 1
+					if(tempL>99)
+					tempL=99;
+				}
+				if(USART3_RX_BUF[1]=='1')			   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¸©åº¦è®¾ç½®å®šå€¼å‡1æŒ‡ä»¤
+				{
+					tempL--;					   //æ¸©åº¦å®šå€¼å‡1
+					if(tempL<1)
+					tempL=1;
+				}
+					USART3_RX_BUF[1]=0;				   //æ¸…é›¶
 				}
 				
-				if(USART3_RX_BUF[0]=='4')				   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄ¸ßÎÂ¶ÈÉèÖÃÖ¸ÁîÍ·Êı¾İ................
+				if(USART3_RX_BUF[0]=='4')				   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„é«˜æ¸©åº¦è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®................
 				{
-					if(USART3_RX_BUF[1]=='1')			   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÎÂ¶ÈÉèÖÃ¶¨Öµ¼Ó1Ö¸Áî
+					if(USART3_RX_BUF[1]=='1')			   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¸©åº¦è®¾ç½®å®šå€¼åŠ 1æŒ‡ä»¤
 					{
-						tempH++;					   //ÎÂ¶È¶¨Öµ¼Ó1
+						tempH++;					   //æ¸©åº¦å®šå€¼åŠ 1
 						if(tempH>99)
 						tempH=99;
 					}
-					if(USART3_RX_BUF[1]=='0')			   //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÎÂ¶ÈÉèÖÃ¶¨Öµ¼õ1Ö¸Áî
+					if(USART3_RX_BUF[1]=='0')			   //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¸©åº¦è®¾ç½®å®šå€¼å‡1æŒ‡ä»¤
 					{
-						tempH--;					   //ÎÂ¶È¶¨Öµ¼õ1
+						tempH--;					   //æ¸©åº¦å®šå€¼å‡1
 						if(tempH<1)
 						tempH=1;
 					}
-					USART3_RX_BUF[1]=0;				   //ÇåÁã
+					USART3_RX_BUF[1]=0;				   //æ¸…é›¶
 				}
 				
-				if(USART3_RX_BUF[0]=='7')				  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄµÍÊª¶ÈÉèÖÃÖ¸ÁîÍ·Êı¾İ..................
+				if(USART3_RX_BUF[0]=='7')				  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„ä½æ¹¿åº¦è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®..................
 				{
-						if(USART3_RX_BUF[1]=='0')			  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÊª¶ÈÉèÖÃ¶¨Öµ¼Ó1Ö¸Áî
-						{
-							rhL++;					  //Êª¶È¶¨Öµ¼Ó1
-							if(rhL>99)
-							rhL=99;
-						}
-						if(USART3_RX_BUF[1]=='1')			  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÊª¶ÈÉèÖÃ¶¨Öµ¼õ1Ö¸Áî
-						{
-								rhL--;					  //Êª¶È¶¨Öµ¼õ1
-								if(rhL<1)
-								rhL=1;
-						}
-						USART3_RX_BUF[1]=0;				  //ÇåÁã
+					if(USART3_RX_BUF[1]=='0')			  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¹¿åº¦è®¾ç½®å®šå€¼åŠ 1æŒ‡ä»¤
+					{
+						rhL++;					  //æ¹¿åº¦å®šå€¼åŠ 1
+						if(rhL>99)
+						rhL=99;
+					}
+					if(USART3_RX_BUF[1]=='1')			  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¹¿åº¦è®¾ç½®å®šå€¼å‡1æŒ‡ä»¤
+					{
+							rhL--;					  //æ¹¿åº¦å®šå€¼å‡1
+							if(rhL<1)
+							rhL=1;
+					}
+					USART3_RX_BUF[1]=0;				  //æ¸…é›¶
 				}
 				
-				if(USART3_RX_BUF[0]=='5')				  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄ¸ßÊª¶ÈÉèÖÃÖ¸ÁîÍ·Êı¾İ....................
+				if(USART3_RX_BUF[0]=='5')				  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„é«˜æ¹¿åº¦è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®....................
 				{
-						if(USART3_RX_BUF[1]=='1')			  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÊª¶ÈÉèÖÃ¶¨Öµ¼Ó1Ö¸Áî
-						{
-							rhH++;					  //Êª¶È¶¨Öµ¼Ó1
-							if(rhH>99)
-							rhH=99;
-						}
-						if(USART3_RX_BUF[1]=='0')			  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÊª¶ÈÉèÖÃ¶¨Öµ¼õ1Ö¸Áî
-						{
-								rhH--;					  //Êª¶È¶¨Öµ¼õ1
-								if(rhH<1)
-								rhH=1;
-						}
-						USART3_RX_BUF[1]=0;				  //ÇåÁã
+					if(USART3_RX_BUF[1]=='1')			  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¹¿åº¦è®¾ç½®å®šå€¼åŠ 1æŒ‡ä»¤
+					{
+						rhH++;					  //æ¹¿åº¦å®šå€¼åŠ 1
+						if(rhH>99)
+						rhH=99;
+					}
+					if(USART3_RX_BUF[1]=='0')			  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„æ¹¿åº¦è®¾ç½®å®šå€¼å‡1æŒ‡ä»¤
+					{
+							rhH--;					  //æ¹¿åº¦å®šå€¼å‡1
+							if(rhH<1)
+							rhH=1;
+					}
+					USART3_RX_BUF[1]=0;				  //æ¸…é›¶
 				}
-				if(USART3_RX_BUF[0]=='9')				  //½ÓÊÕµ½µÄAPP´«ËÍÀ´µÄÑÌÎíãĞÖµÉèÖÃÖ¸ÁîÍ·Êı¾İ
+				if(USART3_RX_BUF[0]=='9')				  //æ¥æ”¶åˆ°çš„APPä¼ é€æ¥çš„çƒŸé›¾é˜ˆå€¼è®¾ç½®æŒ‡ä»¤å¤´æ•°æ®
 				{
-						if(USART3_RX_BUF[1]=='0')			  
-						{
-                ppm_pre++;
-							  if(ppm_pre>99)
-								ppm_pre=99;
-						}
-						if(USART3_RX_BUF[1]=='1')			  
-						{
-                ppm_pre--;
-							  if(ppm_pre<1)
-								ppm_pre=1;
-						}
-						USART3_RX_BUF[1]=0;				  //ÇåÁã
+					if(USART3_RX_BUF[1]=='0')			  
+					{
+						ppm_pre++;
+						if(ppm_pre>99)
+						ppm_pre=99;
+					}
+					if(USART3_RX_BUF[1]=='1')			  
+					{
+						ppm_pre--;
+						if(ppm_pre<1)
+						ppm_pre=1;
+					}
+					USART3_RX_BUF[1]=0;				  //æ¸…é›¶
 				}				
-		
 		
 	}
 }
 
-//´®¿Ú4ÖĞ¶Ï·şÎñ³ÌĞò£¬½ÓÊÕk210Ê¶±ğ½á¹ûUART4_TXD(PC.10)UART4_RXD(PC.11)
+//ä¸²å£4ä¸­æ–­æœåŠ¡ç¨‹åºï¼Œæ¥æ”¶k210è¯†åˆ«ç»“æœUART4_TXD(PC.10)UART4_RXD(PC.11)
 void UART4_IRQHandler(void)      
 {
 	static u8 mask_num, name_num;
 	u8 Res;
+	u8 mask_flag = 0;	//å£ç½©è¯†åˆ«æ¥æ”¶æ ‡å¿—
+	u8 name_flag = 0; //å§“åè¯†åˆ«æ¥æ”¶æ ‡å¿—
 	if(USART_GetITStatus(UART4, USART_IT_RXNE) != RESET)
 	{
-		Res =USART_ReceiveData(UART4);	//¶ÁÈ¡½ÓÊÕµ½µÄÊı¾İ
-		USART_ClearFlag(UART4,USART_FLAG_RXNE);//Çå³ı½ÓÊÕ±êÖ¾
+		Res =USART_ReceiveData(UART4);	//è¯»å–æ¥æ”¶åˆ°çš„æ•°æ®
+		USART_ClearFlag(UART4,USART_FLAG_RXNE);//æ¸…é™¤æ¥æ”¶æ ‡å¿—
 
-		//³õÊ¼»¯Êı×é,×ÖÍ·´¦Àí
-		if(Res=='M'){
+		//åˆå§‹åŒ–æ•°ç»„,å­—å¤´å¤„ç†
+		if(Res=='M')
+		{
+			name_flag = 0;	//å…³é—­å§“åæ•°æ®æ¥æ”¶
+			mask_flag = 1; //å‡†å¤‡å¼€å§‹æ¥æ”¶å£ç½©è¯†åˆ«ç»“æœ
 			mask_num = 0;
 			mask[mask_num] = Res;
-		}else if(Res=='P'){
+		}
+		else if(Res=='P')
+		{
+			mask_flag = 0;	//å…³é—­å£ç½©è¯†åˆ«ç»“æœæ•°æ®æ¥æ”¶
+			name_flag = 1;	//å‡†å¤‡å¼€å§‹æ¥æ”¶å§“åè¯†åˆ«ç»“æœ
 			name_num = 0;
 			name[name_num] = Res;			
 		}
 		
-		//Êµ¼ÊÊı¾İ
-		if('0' <= Res && Res <= '9'){
+		//å®é™…æ•°æ®
+		if(mask_flag && '0' <= Res && Res <= '9')
+		{
 			mask[++mask_num] = Res;
 		}
-		if(('a' <= Res && Res <= 'z') || ('0' <= Res && Res <= '9')){
+		if(name_flag && (('a' <= Res && Res <= 'z') || ('0' <= Res && Res <= '9')))
+		{
 			name[++name_num] = Res;			
 		}
 		
 	}
 }
 
-//´®¿Ú1ÖĞ¶Ï·şÎñ³ÌĞò	
+//ä¸²å£1ä¸­æ–­æœåŠ¡ç¨‹åº	
 //void USART1_IRQHandler(void)                	
 //{
 //	u8 Res;
 //	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 //	{
-//		Res =USART_ReceiveData(USART1);	//¶ÁÈ¡½ÓÊÕµ½µÄÊı¾İ
+//		Res =USART_ReceiveData(USART1);	//è¯»å–æ¥æ”¶åˆ°çš„æ•°æ®
 //		USART_ClearFlag(USART1,USART_FLAG_RXNE);
-//			////printf("%s",&Res);
+//		printf("%s",&Res);
 //		if(Res=='1'){
 //			//usr code
 //			
 //		}
-//		
 //	}
 //}
+
