@@ -2,17 +2,17 @@
 #include <math.h>
 #include "delay.h"
 //#include "delay.h"
-//mq2 mq7 mq135µÄ²É¼¯
+//mq2 mq7 mq135çš„é‡‡é›†
 //=============================================================================
-//±äÁ¿Ãû³Æ£º
-//DMA_buf[0]  MQ2    ÑÌÎí
-//DMA_buf[1]  MQ7    Ò»Ñõ»¯Ì¼
-//DMA_buf[2]  MQ135  ¿ÕÆøÖÊÁ¿
+//å˜é‡åç§°ï¼š
+//DMA_buf[0]  MQ2    çƒŸé›¾
+//DMA_buf[1]  MQ7    ä¸€æ°§åŒ–ç¢³
+//DMA_buf[2]  MQ135  ç©ºæ°”è´¨é‡
 //=============================================================================
-//×ª»¯ppmÏà¹ØÊı¾İ¶¨Òå
-#define CAL_PPM 20  // Ğ£×¼»·¾³ÖĞPPMÖµ
-#define RL			5		// RL×èÖµ£¬Êµ¼Ê»·¾³½ÃÕıÎªR0
-static float R0 = 14; // Ôª¼şÔÚ½à¾»¿ÕÆøÖĞµÄ×èÖµ
+//è½¬åŒ–ppmç›¸å…³æ•°æ®å®šä¹‰
+#define CAL_PPM 20  // æ ¡å‡†ç¯å¢ƒä¸­PPMå€¼
+#define RL	5		// RLé˜»å€¼ï¼Œå®é™…ç¯å¢ƒçŸ«æ­£ä¸ºR0
+static float R0 = 6; // å…ƒä»¶åœ¨æ´å‡€ç©ºæ°”ä¸­çš„é˜»å€¼
 /***RS/RL*************ppm******************
  * 1.651428	          200               *
  * 1.437143	          300               *
@@ -44,7 +44,7 @@ void ADC1_Config(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA,ENABLE);
 	
 	GPIO_InitTypeDef GPIO_Struct={0};
-	GPIO_Struct.GPIO_Mode = GPIO_Mode_AIN;                       //Ä£ÄâÊäÈë
+	GPIO_Struct.GPIO_Mode = GPIO_Mode_AIN;                       //æ¨¡æ‹Ÿè¾“å…¥
 	GPIO_Struct.GPIO_Pin = GPIO_Pin_1;
 	GPIO_Struct.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA,&GPIO_Struct);
@@ -52,15 +52,15 @@ void ADC1_Config(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);
 	
 	ADC_InitTypeDef ADC_Struct={0};	
-	RCC_ADCCLKConfig(RCC_PCLK2_Div6);                            //ÉèÖÃADCÊ±ÖÓ 72/6<14
-	ADC_Struct.ADC_Mode = ADC_Mode_Independent;                  //¶ÀÁ¢¹¤×÷Ä£Ê½
-	ADC_Struct.ADC_ContinuousConvMode = ENABLE;                  //Á¬ĞøÄ£Ê½
-	ADC_Struct.ADC_ScanConvMode = DISABLE;                        //¶àÍ¨µÀÄ£Ê½
-	ADC_Struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None; //×ª»»ÓÉÈí¼ş´¥·¢Æô¶¯
-	ADC_Struct.ADC_DataAlign = ADC_DataAlign_Right;              //ÓÒ¶ÔÆë
-	ADC_Struct.ADC_NbrOfChannel = 1;                             //¹æ¶¨ÁËË³Ğò½øĞĞ¹æÔò×ª»»µÄ ADC Í¨µÀµÄÊıÄ¿
+	RCC_ADCCLKConfig(RCC_PCLK2_Div6);                            //è®¾ç½®ADCæ—¶é’Ÿ 72/6<14
+	ADC_Struct.ADC_Mode = ADC_Mode_Independent;                  //ç‹¬ç«‹å·¥ä½œæ¨¡å¼
+	ADC_Struct.ADC_ContinuousConvMode = ENABLE;                  //è¿ç»­æ¨¡å¼
+	ADC_Struct.ADC_ScanConvMode = DISABLE;                        //å¤šé€šé“æ¨¡å¼
+	ADC_Struct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None; //è½¬æ¢ç”±è½¯ä»¶è§¦å‘å¯åŠ¨
+	ADC_Struct.ADC_DataAlign = ADC_DataAlign_Right;              //å³å¯¹é½
+	ADC_Struct.ADC_NbrOfChannel = 1;                             //è§„å®šäº†é¡ºåºè¿›è¡Œè§„åˆ™è½¬æ¢çš„ ADC é€šé“çš„æ•°ç›®
 	ADC_Init(ADC1,&ADC_Struct);
-	//ÉèÖÃÖ¸¶¨ ADC µÄ¹æÔò×éÍ¨µÀ£¬ÉèÖÃËüÃÇµÄ×ª»¯Ë³ĞòºÍ²ÉÑùÊ±¼ä	
+	//è®¾ç½®æŒ‡å®š ADC çš„è§„åˆ™ç»„é€šé“ï¼Œè®¾ç½®å®ƒä»¬çš„è½¬åŒ–é¡ºåºå’Œé‡‡æ ·æ—¶é—´	
 	ADC_RegularChannelConfig(ADC1,ADC_Channel_1,1,ADC_SampleTime_239Cycles5);//MQ2	
 //	ADC_RegularChannelConfig(ADC1,ADC_Channel_6,2,ADC_SampleTime_239Cycles5);//MQ7	
 //	ADC_RegularChannelConfig(ADC1,ADC_Channel_7,3,ADC_SampleTime_239Cycles5);//MQ135
@@ -68,89 +68,93 @@ void ADC1_Config(void)
 	ADC_DMACmd(ADC1,ENABLE);
 	ADC_Cmd(ADC1,ENABLE); 
 	
-	//Ğ£×¼:¼õĞ¡Îó²î
-	ADC_ResetCalibration(ADC1);                            //ÖØÖÃ¼Ä´æÆ÷
-	while(ADC_GetResetCalibrationStatus(ADC1)==SET);        //µÈ´ıÖØÖÃÍê³É
-	ADC_StartCalibration(ADC1);                            //Æô¶¯Ğ£×¼£¬ÓÃĞ£×¼¼Ä´æÆ÷ Ğ£×¼ ADC1
-	while(ADC_GetCalibrationStatus(ADC1)==SET);             //µÈ´ıĞ£×¼Íê³É		
-	ADC_SoftwareStartConvCmd(ADC1,ENABLE);                 //Æô¶¯×ª»» Ê¹ÄÜ»òÕßÊ§ÄÜÖ¸¶¨µÄ ADC µÄÈí¼ş×ª»»Æô¶¯¹¦ÄÜ 			
+	//æ ¡å‡†:å‡å°è¯¯å·®
+	ADC_ResetCalibration(ADC1);                            //é‡ç½®å¯„å­˜å™¨
+	while(ADC_GetResetCalibrationStatus(ADC1)==SET);        //ç­‰å¾…é‡ç½®å®Œæˆ
+	ADC_StartCalibration(ADC1);                            //å¯åŠ¨æ ¡å‡†ï¼Œç”¨æ ¡å‡†å¯„å­˜å™¨ æ ¡å‡† ADC1
+	while(ADC_GetCalibrationStatus(ADC1)==SET);             //ç­‰å¾…æ ¡å‡†å®Œæˆ		
+	ADC_SoftwareStartConvCmd(ADC1,ENABLE);                 //å¯åŠ¨è½¬æ¢ ä½¿èƒ½æˆ–è€…å¤±èƒ½æŒ‡å®šçš„ ADC çš„è½¯ä»¶è½¬æ¢å¯åŠ¨åŠŸèƒ½ 			
 }
 
 void DMA_Config(void)
 {
 	DMA_InitTypeDef DMA_Struct={0};
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);               //¿ªÆôDMAÊ±ÖÓ
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);               //å¼€å¯DMAæ—¶é’Ÿ
 
-	DMA_Struct.DMA_PeripheralBaseAddr =(u32) &ADC1->DR;             //¶¨ÒåDMAÍâÉè»ùµØÖ·
-	DMA_Struct.DMA_DIR = DMA_DIR_PeripheralSRC;                     //ÍâÉè×÷ÎªÊı¾İ´«ÊäµÄÀ´Ô´
-	DMA_Struct.DMA_BufferSize = 1;                                  //µØÖ·µİÔö3´Î£¨µ¥Î»Îª×Ö¿í£©
-	DMA_Struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;       //ÍâÉèµØÖ·¼Ä´æÆ÷²»±ä
-	DMA_Struct.DMA_MemoryInc = DMA_MemoryInc_Enable;                //ÄÚ´æµØÖ·¼Ä´æÆ÷µİÔö
-	DMA_Struct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;    //Êı¾İ¿í¶ÈÎª16Î»
-	DMA_Struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord; //Êı¾İ¿í¶ÈÎª16Î»
-	DMA_Struct.DMA_Mode = DMA_Mode_Circular;                        //¹¤×÷ÔÚÑ­»·»º´æÄ£Ê½
-	DMA_Struct.DMA_Priority = DMA_Priority_High;                    //ÓÅÏÈ¼¶
-	DMA_Struct.DMA_M2M = DMA_M2M_Disable;                           //DMAÍ¨µÀÃ»ÓĞÉèÖÃÎªÄÚ´æµ½ÄÚ´æ´«Êä
-	DMA_Struct.DMA_MemoryBaseAddr = (u32)&DMA_buf[0];               //ÄÚ´æ»ùµØÖ·
+	DMA_Struct.DMA_PeripheralBaseAddr =(u32) &ADC1->DR;             //å®šä¹‰DMAå¤–è®¾åŸºåœ°å€
+	DMA_Struct.DMA_DIR = DMA_DIR_PeripheralSRC;                     //å¤–è®¾ä½œä¸ºæ•°æ®ä¼ è¾“çš„æ¥æº
+	DMA_Struct.DMA_BufferSize = 1;                                  //æ€»æ•°æ®ï¼ˆå•ä½ä¸ºå­—å®½ï¼‰
+	DMA_Struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;       //å¤–è®¾åœ°å€å¯„å­˜å™¨ä¸å˜
+	DMA_Struct.DMA_MemoryInc = DMA_MemoryInc_Enable;                //å†…å­˜åœ°å€å¯„å­˜å™¨é€’å¢
+	DMA_Struct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;    //æ•°æ®å®½åº¦ä¸º16ä½
+	DMA_Struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord; //æ•°æ®å®½åº¦ä¸º16ä½
+	DMA_Struct.DMA_Mode = DMA_Mode_Circular;                        //å·¥ä½œåœ¨å¾ªç¯ç¼“å­˜æ¨¡å¼
+	DMA_Struct.DMA_Priority = DMA_Priority_High;                    //ä¼˜å…ˆçº§
+	DMA_Struct.DMA_M2M = DMA_M2M_Disable;                           //DMAé€šé“æ²¡æœ‰è®¾ç½®ä¸ºå†…å­˜åˆ°å†…å­˜ä¼ è¾“
+	DMA_Struct.DMA_MemoryBaseAddr = (u32)&DMA_buf[0];               //å†…å­˜åŸºåœ°å€
 	
 	DMA_Init(DMA1_Channel1,&DMA_Struct);
 	DMA_Cmd(DMA1_Channel1,ENABLE);
 }
 
-//²»²ÉÓÃDMAµÄ¶àÍ¨µÀ²É¼¯·½·¨
-//u16 ADC_Result(u8 ADC_Channel_x)
-//{
-//	u16 ADC_val = ADC_GetConversionValue(ADC1); //·µ»Ø×î½üÒ»´Î ADCx ¹æÔò×éµÄ×ª»»½á¹û
-//	ADC_RegularChannelConfig(ADC1,ADC_Channel_x,1,ADC_SampleTime_239Cycles5);
-//	ADC_SoftwareStartConvCmd(ADC1,ENABLE); //Æô¶¯×ª»»	 Ê¹ÄÜ»òÕßÊ§ÄÜÖ¸¶¨µÄ ADC µÄÈí¼ş×ª»»Æô¶¯¹¦ÄÜ 	
-//	while((ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC))==RESET);
-//	
-//	//float ADC_Cha = (ADC_val*3.3/4095);
-//	//printf("ADC_val == %d\r\n",ADC_val);
-//	return ADC_val;
-//}
-//u16 Get_Adc_Average(u8 ch,u8 times)
-//{
-//	u16 temp_val=0;
-//	u8 t;
-//	for(t=0;t<times;t++)
-//	{
-//		temp_val+=ADC_Result(ch);
-//		Delay_ms(5);
-//	}
-//	return temp_val/times;
-//} 	
+//ä¸é‡‡ç”¨DMAçš„å¤šé€šé“é‡‡é›†æ–¹æ³•
+u16 ADC_Result(u8 ADC_Channel_x)
+{
+	u16 ADC_val = ADC_GetConversionValue(ADC1); //è¿”å›æœ€è¿‘ä¸€æ¬¡ ADCx è§„åˆ™ç»„çš„è½¬æ¢ç»“æœ
+	ADC_RegularChannelConfig(ADC1,ADC_Channel_x,1,ADC_SampleTime_239Cycles5);
+	ADC_SoftwareStartConvCmd(ADC1,ENABLE); //å¯åŠ¨è½¬æ¢	 ä½¿èƒ½æˆ–è€…å¤±èƒ½æŒ‡å®šçš„ ADC çš„è½¯ä»¶è½¬æ¢å¯åŠ¨åŠŸèƒ½ 	
+	while((ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC))==RESET);
+	
+	//float ADC_Cha = (ADC_val*3.3/4095);
+	//printf("ADC_val == %d\r\n",ADC_val);
+	return ADC_val;
+}
+u16 Get_Adc_Average(u8 ch,u8 times)
+{
+	u16 temp_val=0;
+	u8 t;
+	for(t=0;t<times;t++)
+	{
+		temp_val+=ADC_Result(ch);
+		delay_ms(5);
+	}
+	return temp_val/times;
+} 	
 
 void MQ2_Init(void)
 {
-	ADC1_Config();
 	DMA_Config();
+	ADC1_Config();
 }
  
- // MQ2´«¸ĞÆ÷Êı¾İ´¦Àí£¬Êµ¼ÊµçÑ¹
+ // MQ2ä¼ æ„Ÿå™¨æ•°æ®å¤„ç†ï¼Œå®é™…ç”µå‹
 float MQ2_GetVol(void)
 {
-	//u16 adcx = Get_Adc_Average(ADC_Channel_1, 10);//²»¿ªÆôdma
-	float Vrl = 3.3f * DMA_buf[0] / 4095.0;
+	u16 adcx = Get_Adc_Average(ADC_Channel_1, 10);//ä¸å¼€å¯dma
+//	u16 adcx = 0;
+//	adcx += DMA_buf[0];//è·å–DMAé€šé“å€¼
+	float Vrl = 3.3f * adcx / 4096.0;
 	return  Vrl;
 }
-// ´«¸ĞÆ÷Ğ£×¼º¯Êı£¬¾­²âÊÔÎª14
+// ä¼ æ„Ÿå™¨æ ¡å‡†å‡½æ•°ï¼Œç»æµ‹è¯•ä¸º14
 void MQ2_PPM_Calibration(float RS)
 {
-	R0 = RS / pow(CAL_PPM/613.9f, -1/2.407f);
+	R0 = RS / pow(CAL_PPM/613.9f, -1/2.074f);
 }
-//»ñÈ¡Êµ¼Êppm
+//è·å–å®é™…ppm
 float MQ2_GetPPM(void)
 {
 	float Vrl = MQ2_GetVol();
+	Vrl = ( (float)( (int)( (Vrl+0.005)*100 ) ) )/100;
 	//Vrl = 3.3;
 	float RS = (3.3f - Vrl) / Vrl * RL; 
-	if(boot_time_ms < 3000) // »ñÈ¡ÏµÍ³Ö´ĞĞÊ±¼ä£¬3sÇ°½øĞĞĞ£×¼
+	if(boot_time_ms < 3000) // è·å–ç³»ç»Ÿæ‰§è¡Œæ—¶é—´ï¼Œ3så‰è¿›è¡Œæ ¡å‡†
 	{
-		  MQ2_PPM_Calibration(RS);
+		MQ2_PPM_Calibration(RS);
 	}
-	//MQ2_PPM_Calibration(RS);
-	//return 2*R0;
-	float ppm = 613.9f * pow(RS/R0, -2.407f);
+//	MQ2_PPM_Calibration(RS);
+//	return 2*R0;
+	float ppm = 613.9f * pow(RS/R0, -2.074f);
 	return  ppm;
 }
+
