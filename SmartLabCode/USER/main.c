@@ -130,7 +130,7 @@ int main(void)
 	MQ2_Init();
 	SMBus_Init();//红外测温模块mlx90614
 
-  //中断接收顺序
+	//中断接收顺序
 	Usart2_Init(115200);	 	//esp8266
 	USART3_Init(9600);	 	//蓝牙
 	USART4_Init(9600);		//K210
@@ -205,222 +205,223 @@ int main(void)
 		OLED_ShowString(0,4,"B.New Card");
 
 		key_board = KEY_Scan(0);
-		if(key_board!=WKUP_PRES){//非退出，进入任务，包含RFID，口罩，人脸
-		if(key_board==KEY0_PRES || r_flag==1)//键入A：用卡解锁
-		{
-//unlock:						
-			r_flag = 1;
-			LED0 = !LED0;//调试板按键0
-			while(1)//RFID识别
+		if(key_board!=WKUP_PRES)
+		{//非退出，进入任务，包含RFID，口罩，人脸
+			if(key_board==KEY0_PRES || r_flag==1)//键入A：用卡解锁
 			{
-				OLED_Clear();
-				OLED_ShowString(0,0,"A.Card unlock");
-				if(y_flag == 1) 
+//unlock:						
+				r_flag = 1;
+				LED0 = !LED0;//调试板按键0
+				while(1)//RFID识别
 				{
-				//疫情防控任务
-				temp_mlx = SMBus_ReadTemp();  //获取体温
-				sprintf(cp_time+10,"%.1f",temp_mlx);
-				OLED_Clear();
-				OLED_ShowString(0,0,"epi pre");
-				OLED_ShowString(0,6,"mlx=");
-				OLED_ShowString(32,6,(u8*)(cp_time+10));
-				OLED_ShowString(64,6,"C");
-										
-				if(mask[1] == '1' && temp_mlx < 37.5) {
-				//欢迎
-				OLED_ShowString(0,2,"welcome");
-				SYN_FrameInfo(0, "[v16][m5][t6]欢迎！");
-				mask[1] = '#';//清标志
-				}
-				else if(mask[1] == '0' && temp_mlx < 37.5) 
-				{
-				//请戴好口罩
-				OLED_ShowString(0,2,"no mask");
-				SYN_FrameInfo(0, "[v16][m5][t6]请戴好口罩！");
-				mask[1] = '#';//清标志
-				}
-				else if(mask[1] != '#' && temp_mlx >= 37.5)
-				{
-				//温度过高
-				OLED_ShowString(0,2,"high temp");
-				SYN_FrameInfo(0, "[v16][m5][t6]请注意，您体温过高！");
-				mask[1] = '#';//清标志
-				}
-				delay_ms(500);
-				}
-				//RFID任务 || 人脸识别
-				if(f_flag == 1) 
-				{ //人脸识别
-					face_num = face(name);//获取人脸识别ID
-					cp_time[1] = face_num%10 + '0';											
-					temp_mlx = SMBus_ReadTemp();  //获取体温
-					sprintf(cp_time+10,"%.1f",temp_mlx);
-										
-					OLED_Clear();
-					OLED_ShowString(0,0,"face recognition");
-					OLED_ShowString(0,2,"ID:");
-					OLED_ShowChar(24,2,face_num+'0');
-										
-					for(int i=0;i<3;i++)
-					{
-						UART3_SendString((u8*)cp_time,14);//通过串口发送数据
-					}
-					switch(face_num)
-					{
-						case 0:
-						break;
-													
-						case 1:
-						SYN_FrameInfo(0, "[v16][m5][t6]欢迎庞先生。");
-						break;
-													
-						case 2:
-						SYN_FrameInfo(0, "[v16][m5][t6]欢迎。");
-						break;														
-													
-						default:
-						break;
-					}
-					name[1] = '0';//清除识别结果
-					delay_ms(500);
-				}
-
-				card_num = card_unlock();//RFID 返回获取到的第几张卡
-				switch(card_num)
-				{
-					case 0:
-					OLED_Clear();
-					OLED_ShowString(0,2,"no card");
-					OLED_ShowString(0,4,"Please Swipe Again");
-					delay_ms(1864);
 					OLED_Clear();
 					OLED_ShowString(0,0,"A.Card unlock");
-					break;
-
-					case 255:
-					break;
-							
-					default://识别为库中的卡
-					real_time = __TIME__;//获取时间
-					cp_time[1] = card_num%10 + '0';											
-					strcat(cp_time+2,real_time);
+					if(y_flag == 1) 
+					{
+					//疫情防控任务
 					temp_mlx = SMBus_ReadTemp();  //获取体温
 					sprintf(cp_time+10,"%.1f",temp_mlx);
-					for(int i=0;i<3;i++)
-					{
-						UART3_SendString((u8*)cp_time,14);//通过串口发送数据
-					}
 					OLED_Clear();
-					OLED_ShowString(0,2,"welcome,card");
-					OLED_ShowChar(96,2,card_num+'0');
-					OLED_ShowString(0,4,"Door is open");
-					delay_ms(1864);								
-//dht11_mq2:						
-					OLED_Clear();
-					OLED_ShowString(0,0,"Welcome");
-					OLED_ShowString(0,2,"Data show");
-
-					OLED_ShowString(0,4,"T=");
-					OLED_ShowString(48,4,"H=");
-					//DHT11_Read_Data(&temp,&humi);
-					TandH[0] = temp/10+'0';
-					TandH[1] = temp%10+'0';
-					TandH[2] = '%';
-					TandH[3] = '\0';
-					TandH[4] = humi/10+'0';
-					TandH[5] = humi%10+'0';
-					TandH[6] = '%';
-					TandH[7] = '\0';
-					p = TandH;
-					OLED_ShowString(16,4,p);
-					p = TandH+4;
-					OLED_ShowString(64,4,p);
-//					烟雾浓度设置
-//					ppm = MQ2_GetPPM()/2;//浓度百分比量化
-//					OLED_ShowString(0,6,"ppm=");
-//					OLED_ShowNum(32,6,ppm,2,8);
-//					OLED_ShowString(56,6,"%");
-//					红外测温设置
+					OLED_ShowString(0,0,"epi pre");
 					OLED_ShowString(0,6,"mlx=");
 					OLED_ShowString(32,6,(u8*)(cp_time+10));
 					OLED_ShowString(64,6,"C");
-					delay_ms(1864);
-					break;
-				};
+											
+					if(mask[1] == '1' && temp_mlx < 37.5) {
+					//欢迎
+					OLED_ShowString(0,2,"welcome");
+					SYN_FrameInfo(0, "[v16][m5][t6]欢迎！");
+					mask[1] = '#';//清标志
+					}
+					else if(mask[1] == '0' && temp_mlx < 37.5) 
+					{
+					//请戴好口罩
+					OLED_ShowString(0,2,"no mask");
+					SYN_FrameInfo(0, "[v16][m5][t6]请戴好口罩！");
+					mask[1] = '#';//清标志
+					}
+					else if(mask[1] != '#' && temp_mlx >= 37.5)
+					{
+					//温度过高
+					OLED_ShowString(0,2,"high temp");
+					SYN_FrameInfo(0, "[v16][m5][t6]请注意，您体温过高！");
+					mask[1] = '#';//清标志
+					}
+					delay_ms(500);
+					}
+					//RFID任务 || 人脸识别
+					if(f_flag == 1) 
+					{ //人脸识别
+						face_num = face(name);//获取人脸识别ID
+						cp_time[1] = face_num%10 + '0';											
+						temp_mlx = SMBus_ReadTemp();  //获取体温
+						sprintf(cp_time+10,"%.1f",temp_mlx);
+											
+						OLED_Clear();
+						OLED_ShowString(0,0,"face recognition");
+						OLED_ShowString(0,2,"ID:");
+						OLED_ShowChar(24,2,face_num+'0');
+											
+						for(int i=0;i<3;i++)
+						{
+							UART3_SendString((u8*)cp_time,14);//通过串口发送数据
+						}
+						switch(face_num)
+						{
+							case 0:
+							break;
+														
+							case 1:
+							SYN_FrameInfo(0, "[v16][m5][t6]欢迎庞先生。");
+							break;
+														
+							case 2:
+							SYN_FrameInfo(0, "[v16][m5][t6]欢迎。");
+							break;														
+														
+							default:
+							break;
+						}
+						name[1] = '0';//清除识别结果
+						delay_ms(500);
+					}
 
-				if(n_flag == 1) //卡添加
-				{
-					new_card(C_oled_use_array);
-				}
-				delay_ms(20);
-							
-				if((key_board = KEY_Scan(0))==KEY0_PRES || r_flag == 0)//退出A
-				{
+					card_num = card_unlock();//RFID 返回获取到的第几张卡
+					switch(card_num)
+					{
+						case 0:
+						OLED_Clear();
+						OLED_ShowString(0,2,"no card");
+						OLED_ShowString(0,4,"Please Swipe Again");
+						delay_ms(1864);
+						OLED_Clear();
+						OLED_ShowString(0,0,"A.Card unlock");
+						break;
+
+						case 255:
+						break;
+								
+						default://识别为库中的卡
+						real_time = __TIME__;//获取时间
+						cp_time[1] = card_num%10 + '0';											
+						strcat(cp_time+2,real_time);
+						temp_mlx = SMBus_ReadTemp();  //获取体温
+						sprintf(cp_time+10,"%.1f",temp_mlx);
+						for(int i=0;i<3;i++)
+						{
+							UART3_SendString((u8*)cp_time,14);//通过串口发送数据
+						}
+						OLED_Clear();
+						OLED_ShowString(0,2,"welcome,card");
+						OLED_ShowChar(96,2,card_num+'0');
+						OLED_ShowString(0,4,"Door is open");
+						delay_ms(1864);								
+//dht11_mq2:						
+						OLED_Clear();
+						OLED_ShowString(0,0,"Welcome");
+						OLED_ShowString(0,2,"Data show");
+
+						OLED_ShowString(0,4,"T=");
+						OLED_ShowString(48,4,"H=");
+						//DHT11_Read_Data(&temp,&humi);
+						TandH[0] = temp/10+'0';
+						TandH[1] = temp%10+'0';
+						TandH[2] = '%';
+						TandH[3] = '\0';
+						TandH[4] = humi/10+'0';
+						TandH[5] = humi%10+'0';
+						TandH[6] = '%';
+						TandH[7] = '\0';
+						p = TandH;
+						OLED_ShowString(16,4,p);
+						p = TandH+4;
+						OLED_ShowString(64,4,p);
+		//					烟雾浓度设置
+		//					ppm = MQ2_GetPPM()/2;//浓度百分比量化
+		//					OLED_ShowString(0,6,"ppm=");
+		//					OLED_ShowNum(32,6,ppm,2,8);
+		//					OLED_ShowString(56,6,"%");
+		//					红外测温设置
+						OLED_ShowString(0,6,"mlx=");
+						OLED_ShowString(32,6,(u8*)(cp_time+10));
+						OLED_ShowString(64,6,"C");
+						delay_ms(1864);
+						break;
+					};
+
+					if(n_flag == 1) //卡添加
+					{
+						new_card(C_oled_use_array);
+					}
+					delay_ms(20);
+								
+					if((key_board = KEY_Scan(0))==KEY0_PRES || r_flag == 0)//退出A
+					{
 //quit:								
-					r_flag = 0;//退出后清0
-					OLED_Clear();
-				break;
-				}
-		}//while(1)RFID识别
-	}//if(KEY=='A'|| key_board==KEY0_PRES)//键入A：用卡解锁
+						r_flag = 0;//退出后清0
+						OLED_Clear();
+						break;
+					}
+				}//while(1)RFID识别
+			}//if(KEY=='A'|| key_board==KEY0_PRES)//键入A：用卡解锁
 
-	if(key_board==KEY1_PRES)//键入B：录入卡
-	{
-		LED1 = !LED1;//调试板按键1
-		OLED_Clear();
-		OLED_ShowString(0,0,"B.New Card");
-		while(1)
-		{
-			switch(card_infor_entry(C_oled_use_array))
+			if(key_board==KEY1_PRES)//键入B：录入卡
 			{
-				case 0:
-				OLED_ShowString(0,2,"New Card:");
-				OLED_ShowString(0,4,C_oled_use_array);//显示卡ID
-				LED0 = 0;
-				delay_ms(1864);
-				delay_ms(1864);
-				LED0 = 1;
+				LED1 = !LED1;//调试板按键1
 				OLED_Clear();
 				OLED_ShowString(0,0,"B.New Card");
-				break;
-						
-				case 255:
-				//printf("case1\r\n");
-				break;
-						
-				default:
-				//printf("default\r\n");
-				OLED_ShowString(0,2,"error");
-				OLED_ShowString(0,4,"card is already exist");
-				LED1 = 0;
-				delay_ms(1864);
-				delay_ms(1864);
-				LED1 = 1;
-				OLED_Clear();
-				OLED_ShowString(0,0,"B.New Card");
-				break;
-						
-			};
-			delay_ms(20);
-					
-			if((key_board = KEY_Scan(0))==KEY1_PRES)//退出B
-			{
-				OLED_Clear();
-				break;
-			}
-						
-		}//while
-	}//if(key_board==KEY1_PRES)//键入B：录入卡
+				while(1)
+				{
+					switch(card_infor_entry(C_oled_use_array))
+					{
+						case 0:
+						OLED_ShowString(0,2,"New Card:");
+						OLED_ShowString(0,4,C_oled_use_array);//显示卡ID
+						LED0 = 0;
+						delay_ms(1864);
+						delay_ms(1864);
+						LED0 = 1;
+						OLED_Clear();
+						OLED_ShowString(0,0,"B.New Card");
+						break;
+								
+						case 255:
+						//printf("case1\r\n");
+						break;
+								
+						default:
+						//printf("default\r\n");
+						OLED_ShowString(0,2,"error");
+						OLED_ShowString(0,4,"card is already exist");
+						LED1 = 0;
+						delay_ms(1864);
+						delay_ms(1864);
+						LED1 = 1;
+						OLED_Clear();
+						OLED_ShowString(0,0,"B.New Card");
+						break;
+								
+					};
+					delay_ms(20);
+							
+					if((key_board = KEY_Scan(0))==KEY1_PRES)//退出B
+					{
+						OLED_Clear();
+						break;
+					}
+								
+				}//while
+			}//if(key_board==KEY1_PRES)//键入B：录入卡
 			
-	delay_ms(100);
-//	goto MEAU;
+			delay_ms(100);
+//			goto MEAU;
 
-    }//if(key_board!=WKUP_PRES)
+		}//if(key_board!=WKUP_PRES)
 		#endif
 		
-	#if ALIYUN_TASK
-	aliyun();
-	#endif
+		#if ALIYUN_TASK
+		aliyun();
+		#endif
 	}//while
 }//main
 
@@ -782,10 +783,10 @@ void UART4_IRQHandler(void)
 //		Res =USART_ReceiveData(USART1);	//读取接收到的数据
 //		USART_ClearFlag(USART1,USART_FLAG_RXNE);
 //		printf("%s",&Res);
-//		if(Res=='1'){
+//		if(Res=='1')
+//		{
 //			//usr code
-//			
 //		}
+//		
 //	}
 //}
-
