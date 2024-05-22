@@ -738,8 +738,8 @@ void UART4_IRQHandler(void)
 {
 	static u8 mask_num, name_num;
 	u8 Res;
-	u8 mask_flag = 0;	//口罩识别接收标志
-	u8 name_flag = 0; //姓名识别接收标志
+	static u8 mask_flag = 0;	//口罩识别接收标志
+	static u8 name_flag = 0; //姓名识别接收标志
 	if(USART_GetITStatus(UART4, USART_IT_RXNE) != RESET)
 	{
 		Res =USART_ReceiveData(UART4);	//读取接收到的数据
